@@ -1,0 +1,114 @@
+#!/bin/bash
+
+function print_help(){
+	local scrname=$(basename $0)
+	echo <<EOD
+${scrname}: teketo mclauncher
+usage:	${scrname} -h	: print this help
+	${scrname} -c [<name> [<type>]]
+			: create sandbox with <type>
+	${scrname} <name>
+			: start minecraft with specified sandbox
+EOD
+}
+
+function create_sandbox(){
+	local sandbox_name sandbox
+
+	sandbox_name="$1"
+	if test -z "${sandbox_name}"; then
+		echo -n "sandbox name? " >&2
+		read sandbox_name
+		if test -z "${sandbox_name}"; then
+			echo "Please specify sandbox name" >&2
+			exit 1
+		fi
+	fi
+	sandbox="${tmc_root}/sandbox/${sandbox_name}"
+	if test -e "${sandbox}"; then
+		echo "${sandbox} is exist" >&2
+		exit 1
+	fi
+
+	archdir="${tmc_root}/architect"
+	if test ! -d "${archdir}"; then
+		mkdir "${archdir}"
+		if test which wget >/dev/null 2>&1; then
+			echo "getting https://raw.github.com/turenar/teketo-mclauncher/master/architects.zip"
+			wget -O "${tmc_root}/architects.zip" https://raw.github.com/turenar/teketo-mclauncher/master/architects.zip
+		else
+			echo 'command "wget" is not found' >&2
+			exit 2
+		fi
+		pushd ${tmc_root} >/dev/null 2>&1
+		jar -xf architects.zip
+		popd >/dev/null 2>&1
+	fi
+
+	pushd "${tmc_root}/architect" >/dev/null 2>&1
+	select arch in *; do
+		popd >/dev/null 2>&1
+		"${arch}" "${sandbox}"
+		break
+	done
+
+	if test -e "${sandbox}"; then
+		exit 0
+	else
+		echo "${sandbox} is not created" >&2
+		exit 1
+	fi
+}
+
+function launch_sandbox(){
+	local _tmc_ibus_used sandbox_name sandbox old_home errorcode
+	# if tmc_hack_ibus='', skip
+	if test ! \( -v tmc_hack_ibus -a -z "${tmc_hack_ibus}" \); then
+		if ps -C ibus-daemon >/dev/null; then
+			_tmc_ibus_used=1
+		fi
+	fi
+
+	sandbox_name="$1"
+	if test -z "${sandbox_name}"; then
+		echo "Please specify sandbox name" >&2
+		exit 1;
+	fi
+	sandbox="${tmc_root}/sandbox/${sandbox_name}"
+	if test ! -d "${sandbox}"; then
+		echo "${sandbox} is not exist" >&2
+		exit 2;
+	fi
+	old_home="${HOME}"
+
+	test -z "${_tmc_ibus_used}" && killall ibus-daemon
+
+	HOME="${sandbox}"
+	java -Xmx1024m -Xms512m -jar "${old_home}/.minecraft/launcher.jar"
+	errorcode=$?
+	HOME="${old_home}"
+
+	test -z "${_tmc_ibus_used}" && ibus-daemon --xim -r &
+	exit ${errorcode}
+}
+
+
+if test -z "${tmc_root}"; then
+	tmc_root="${HOME}/.tmclauncher/"
+fi
+if test ! -e "${tmc_root}"; then
+	mkdir -p "${tmc_root}"
+fi
+if test ! -d "${tmc_root}"; then
+	echo "$(basename $0): WARN: ${tmc_root} is not exist or not directory"
+fi
+
+case "$1"
+	-?|-h|--help)	print_help;;
+	-c|--create)	create_sandbox $2 $3;;
+	-*)		print_help>&2; exit 1;;
+	*)		launch_minecraft $2;;
+esac
+
+
+# vim: ts=8
