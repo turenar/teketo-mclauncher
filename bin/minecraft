@@ -2,7 +2,7 @@
 
 function print_help(){
 	local scrname=$(basename $0)
-	echo <<EOD
+	cat <<EOD
 ${scrname}: teketo mclauncher
 usage:	${scrname} -h	: print this help
 	${scrname} -c [<name> [<type>]]
@@ -13,7 +13,7 @@ EOD
 }
 
 function create_sandbox(){
-	local sandbox_name sandbox
+	local sandbox_name sandbox_dir sandbox
 
 	sandbox_name="$1"
 	if test -z "${sandbox_name}"; then
@@ -24,7 +24,11 @@ function create_sandbox(){
 			exit 1
 		fi
 	fi
-	sandbox="${tmc_root}/sandbox/${sandbox_name}"
+	sandbox_dir="${tmc_root}/sandbox"
+	if test ! -e "${sandbox_dir}"; then
+		mkdir "${sandbox_dir}" || exit 2
+	fi
+	sandbox="${sandbox_dir}/${sandbox_name}"
 	if test -e "${sandbox}"; then
 		echo "${sandbox} is exist" >&2
 		exit 1
@@ -48,11 +52,15 @@ function create_sandbox(){
 	pushd "${tmc_root}/architect" >/dev/null 2>&1
 	select arch in *; do
 		popd >/dev/null 2>&1
-		"${arch}" "${sandbox}"
+		"${tmc_root}/architect/${arch}" "${sandbox}" "${tmc_root}"
+		errorcode=$?
 		break
 	done
 
-	if test -e "${sandbox}"; then
+	if test ${errorcode} -ne 0; then
+		echo "${arch} returned ${errorcode}" >&2
+		exit ${errorcode}
+	elif test -e "${sandbox}"; then
 		exit 0
 	else
 		echo "${sandbox} is not created" >&2
@@ -60,7 +68,7 @@ function create_sandbox(){
 	fi
 }
 
-function launch_sandbox(){
+function launch_minecraft(){
 	local _tmc_ibus_used sandbox_name sandbox old_home errorcode
 	# if tmc_hack_ibus='', skip
 	if test ! \( -v tmc_hack_ibus -a -z "${tmc_hack_ibus}" \); then
@@ -81,14 +89,14 @@ function launch_sandbox(){
 	fi
 	old_home="${HOME}"
 
-	test -z "${_tmc_ibus_used}" && killall ibus-daemon
+	test "${_tmc_ibus_used}" -eq 1 && killall ibus-daemon
 
 	HOME="${sandbox}"
 	java -Xmx1024m -Xms512m -jar "${old_home}/.minecraft/launcher.jar"
 	errorcode=$?
 	HOME="${old_home}"
 
-	test -z "${_tmc_ibus_used}" && ibus-daemon --xim -r &
+	test "${_tmc_ibus_used}" -eq 1 && ibus-daemon --xim -r -d
 	exit ${errorcode}
 }
 
@@ -103,11 +111,11 @@ if test ! -d "${tmc_root}"; then
 	echo "$(basename $0): WARN: ${tmc_root} is not exist or not directory"
 fi
 
-case "$1"
-	-?|-h|--help)	print_help;;
+case "$1" in
+	'-?'|-h|--help)	print_help;;
 	-c|--create)	create_sandbox $2 $3;;
 	-*)		print_help>&2; exit 1;;
-	*)		launch_minecraft $2;;
+	*)		launch_minecraft $1;;
 esac
 
 
