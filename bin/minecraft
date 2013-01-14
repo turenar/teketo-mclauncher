@@ -100,9 +100,23 @@ function launch_minecraft(){
 	exit ${errorcode}
 }
 
+function debug_print(){
+	echo "HOME=		${HOME}"
+	echo "mcroot=		${HOME}/.minecraft"
+	echo "tmc_root=	${tmc_root}"
+	echo "archdir=	${tmc_root}/architect"
+	if test ! \( -v tmc_hack_ibus -a -z "${tmc_hack_ibus}" \); then
+		if ps -C ibus-daemon >/dev/null; then
+			_tmc_ibus_used=1
+		fi
+	fi
+	echo "tmc_hack_ibus=	${tmc_hack_ibus:-<unset>}"
+	echo "?ibus hack=	${_tmc_ibus_used}"
+}
+
 
 if test -z "${tmc_root}"; then
-	tmc_root="${HOME}/.tmclauncher/"
+	tmc_root="${HOME}/.tmclauncher"
 fi
 if test ! -e "${tmc_root}"; then
 	mkdir -p "${tmc_root}"
@@ -114,6 +128,7 @@ fi
 case "$1" in
 	'-?'|-h|--help)	print_help;;
 	-c|--create)	create_sandbox $2 $3;;
+	-D)		debug_print;;
 	-*)		print_help>&2; exit 1;;
 	*)		launch_minecraft $1;;
 esac
