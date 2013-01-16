@@ -92,7 +92,7 @@ function launch_minecraft(){
 	test "${_tmc_ibus_used}" -eq 1 && killall ibus-daemon
 
 	HOME="${sandbox}"
-	java -Xmx1024m -Xms512m -jar "${old_home}/.minecraft/launcher.jar"
+	java -Duser.home="${HOME}" -Xmx1024m -Xms512m -jar "${sandbox}/.minecraft/launcher.jar"
 	errorcode=$?
 	HOME="${old_home}"
 
@@ -102,7 +102,6 @@ function launch_minecraft(){
 
 function debug_print(){
 	echo "HOME=		${HOME}"
-	echo "mcroot=		${HOME}/.minecraft"
 	echo "tmc_root=	${tmc_root}"
 	echo "archdir=	${tmc_root}/architect"
 	if test ! \( -v tmc_hack_ibus -a -z "${tmc_hack_ibus}" \); then
@@ -124,6 +123,7 @@ fi
 if test ! -d "${tmc_root}"; then
 	echo "$(basename $0): WARN: ${tmc_root} is not exist or not directory"
 fi
+tmc_root="$(readlink -f ${tmc_root})"
 
 case "$1" in
 	'-?'|-h|--help)	print_help;;
