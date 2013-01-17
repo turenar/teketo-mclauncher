@@ -68,6 +68,25 @@ function create_sandbox(){
 	fi
 }
 
+function backup_data(){
+	sandbox=$1
+	sandbox_name=$2
+	backup_dst="${tmc_root}/backup"
+	if [ ! -e "${backup_dst}" ]; then
+		mkdir "${backup_dst}"
+	fi
+
+	this_day=$(date +%Y%m%d)
+	file_name="${backup_dst}/${sandbox_name}-${this_day}.tar.gz"
+	if [ -e "${file_name}" ]; then
+		return 1
+	fi
+	echo 'Backing up...'
+	pushd "${sandbox}/.." >/dev/null 2>&1
+	tar --dereference -zcf "${file_name}" ${sandbox_name}
+	return 0
+}
+
 function launch_minecraft(){
 	local _tmc_ibus_used sandbox_name sandbox old_home errorcode
 	# if tmc_hack_ibus='', skip
@@ -87,6 +106,9 @@ function launch_minecraft(){
 		echo "${sandbox} is not exist" >&2
 		exit 2;
 	fi
+
+	backup_data "${sandbox}" "${sandbox_name}"
+
 	old_home="${HOME}"
 
 	test "${_tmc_ibus_used}" -eq 1 && killall ibus-daemon
