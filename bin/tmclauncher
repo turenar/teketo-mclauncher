@@ -183,6 +183,7 @@ tmc_root="$(readlink -f ${tmc_root})"
 
 case "$1" in
 	'-?'|-h|--help)	print_help;;
+	-V|--version) echo "${TMC_VERSION}";;
 	-c|--create)	create_sandbox $2 $3;;
 	-D|--debug)	debug_print;;
 	-j|--run)	shift; run_with_sandbox $@;;
