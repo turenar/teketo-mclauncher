@@ -1,14 +1,17 @@
 #!/bin/bash
+TMC_VERSION='0-20130117'
 
 function print_help(){
 	local scrname=$(basename $0)
 	cat <<EOD
 ${scrname}: teketo mclauncher
-usage:	${scrname} -h	: print this help
-	${scrname} -c [<name> [<type>]]
-			: create sandbox with <type>
-	${scrname} <name>
-			: start minecraft with specified sandbox
+
+usage:
+${scrname} -h			: print this help
+${scrname} -c [<name> [<type>]]	: create sandbox with <type>
+${scrname} -j <name> <command> [<arg..>]
+				: exec command with setting HOME to sandbox
+${scrname} <name>		: start minecraft with specified sandbox
 EOD
 }
 
@@ -181,8 +184,8 @@ tmc_root="$(readlink -f ${tmc_root})"
 case "$1" in
 	'-?'|-h|--help)	print_help;;
 	-c|--create)	create_sandbox $2 $3;;
-	-D)		debug_print;;
-	-j)		shift; run_with_sandbox $@;;
+	-D|--debug)	debug_print;;
+	-j|--run)	shift; run_with_sandbox $@;;
 	-*)		print_help>&2; exit 1;;
 	*)		launch_minecraft $1;;
 esac
