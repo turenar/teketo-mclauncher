@@ -1,5 +1,5 @@
 #!/bin/bash
-TMC_VERSION='0-20130117'
+TMC_VERSION='0-20130118'
 
 function print_help(){
 	local scrname=$(basename $0)
@@ -8,7 +8,8 @@ ${scrname}: teketo mclauncher
 
 usage:
 ${scrname} -h			: print this help
-${scrname} -c [<name> [<type>]]	: create sandbox with <type>
+${scrname} -c [<name> [<type>]]
+				: create sandbox with <type>
 ${scrname} -j <name> <command> [<arg..>]
 				: exec command with setting HOME to sandbox
 ${scrname} <name>		: start minecraft with specified sandbox
@@ -169,10 +170,49 @@ function debug_print(){
 	echo "?ibus hack=	${_tmc_ibus_used}"
 }
 
+function upgrade_tmclauncher(){
+	pushd "${tmc_root}" >/dev/null 2>&1
+	mv tmclauncher{,.bak}
+	mv architects.tgz{,.bak}
+	echo "getting files..."
+	tmc_baseurl=https://raw.github.com/turenar/teketo-mclauncher/master
+	wget -nv \
+		${tmc_baseurl}/bin/tmclauncher \
+		${tmc_baseurl}/architects.tgz
+	echo 'installing files...'
+	if [ -e 'tmclauncher' ]; then
+		echo '> chmod +x tmclauncher'
+		chmod +x tmclauncher
+		echo -n "    updated from ${TMC_VERSION} to "
+		./tmclauncher --no-fork --version
+	else
+		echo 'reverting tmclauncher'
+		mv tmclauncher{.bak,}
+	fi
+	if [ -e 'architects.tgz' ]; then
+		echo '> tar -zxf architects.tgz'
+		tar -zxf architects.tgz
+	else
+		echo 'reverting architects.tgz'
+		mv architects.tgz{.bak,}
+	fi
+	popd >/dev/null 2>&1
+}
+
 
 if test -z "${tmc_root}"; then
 	tmc_root="${HOME}/.tmclauncher"
 fi
+
+if [ "$1" = '--no-fork' ]; then
+	shift
+else
+	if [ -e "${tmc_root}/tmclauncher" ]; then
+		${tmc_root}/tmclauncher --no-fork $@
+		exit $?
+	fi
+fi
+
 if test ! -e "${tmc_root}"; then
 	mkdir -p "${tmc_root}"
 fi
@@ -187,7 +227,8 @@ case "$1" in
 	-c|--create)	create_sandbox $2 $3;;
 	-D|--debug)	debug_print;;
 	-j|--run)	shift; run_with_sandbox $@;;
-	-*)		print_help>&2; exit 1;;
+	-u|--upgrade)	upgrade_tmclauncher;;
+	-*)		echo "unknown operation: $1">&2; print_help>&2; exit 1;;
 	*)		launch_minecraft $1;;
 esac
 
