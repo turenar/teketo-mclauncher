@@ -8,6 +8,12 @@ if [ -z "${sandbox}" ]; then
 fi
 
 mkdir -p "${sandbox}/.minecraft" || exit 1
-ln -sv "${mcroot}"/* "${sandbox}/.minecraft" || exit 1
+cd "${sandbox}/.minecraft"
+mkdir bin
+ln -sv "${mcroot}/bin/natives" bin/natives
+cp -v "${mcroot}/bin"/*.jar bin
+cp -v "${mcroot}/bin/version" "${mcroot}/bin/md5s" bin
+cp -rv "${mcroot}/config" config
+ln -sv "${mcroot}/crash-reports" "${mcroot}/lastlogin" "${mcroot}/launcher.jar" "${mcroot}"/options* "${mcroot}/saves" "${mcroot}/screenshots" .
 
 exit 0
