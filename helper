@@ -1,12 +1,14 @@
 #!/bin/sh
 
-command="$1"
+carg="$1"
+command="$2"
+
 if [ -z "${command}" ]; then
 	echo 'require command' >&2
 	exit 1
-elif [ -z "$2" ]; then
-	${command}
+elif [ -z "$3" ]; then
+	${command} "${carg}"
 else
-	shift
-	${command} | "$0" "$@"
+	shift; shift
+	${command} "${carg}" | "$0" "${carg}" "$@"
 fi
