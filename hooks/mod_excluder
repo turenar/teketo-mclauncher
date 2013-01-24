@@ -1,0 +1,4 @@
+#!/bin/sh
+case $1 in
+	backup) grep -v -E '^[^/]+/.minecraft/(coremods|mods|lib)';;
+esac

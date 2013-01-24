@@ -1,5 +1,5 @@
 #!/bin/bash
-TMC_VERSION='0-20130118'
+TMC_VERSION='0-20130124'
 
 function print_help(){
 	local scrname=$(basename $0)
@@ -14,6 +14,14 @@ ${scrname} -j <name> <command> [<arg..>]
 				: exec command with setting HOME to sandbox
 ${scrname} <name>		: start minecraft with specified sandbox
 EOD
+}
+
+function run_hook_with_pipe_chain(){
+	hookdir="${tmc_root}/hooks"
+	if [ ! -e "${tmc_root}/helper" ]; then
+		echo "${tmc_root}/helper is not found. You may run '$0 -u'"
+	fi
+	"${tmc_root}/helper" $1 "${hookdir}"/*
 }
 
 function run_with_sandbox(){
@@ -118,7 +126,9 @@ function backup_data(){
 	fi
 	echo 'Backing up...'
 	pushd "${sandbox}/.." >/dev/null 2>&1
-	tar --dereference -zcf "${file_name}" ${sandbox_name}
+	find -P ${sandbox_name} | run_hook_with_pipe_chain backup \
+		| tar --dereference --no-recursion --files-from=- -zvcf "${file_name}" ${sandbox_name}
+	popd >/dev/null 2>&1
 	return 0
 }
 
@@ -174,11 +184,13 @@ function upgrade_tmclauncher(){
 	pushd "${tmc_root}" >/dev/null 2>&1
 	mv tmclauncher{,.bak}
 	mv architects.tgz{,.bak}
+	mv helper{,.bak}
 	echo "getting files..."
 	tmc_baseurl=https://raw.github.com/turenar/teketo-mclauncher/master
 	wget -nv \
 		${tmc_baseurl}/bin/tmclauncher \
-		${tmc_baseurl}/architects.tgz
+		${tmc_baseurl}/architects.tgz \
+		${tmc_baseurl}/helper
 	echo 'installing files...'
 	if [ -e 'tmclauncher' ]; then
 		echo '> chmod +x tmclauncher'
@@ -186,14 +198,21 @@ function upgrade_tmclauncher(){
 		echo -n "    updated from ${TMC_VERSION} to "
 		./tmclauncher --no-fork --version
 	else
-		echo 'reverting tmclauncher'
+		echo '! reverting tmclauncher'
 		mv tmclauncher{.bak,}
+	fi
+	if [ -e 'helper' ]; then
+		echo '> chmod +x helper'
+		chmod +x helper
+	else
+		echo '! reverting helper'
+		mv helper{.bak,}
 	fi
 	if [ -e 'architects.tgz' ]; then
 		echo '> tar -zxf architects.tgz'
 		tar -zxf architects.tgz
 	else
-		echo 'reverting architects.tgz'
+		echo '! reverting architects.tgz'
 		mv architects.tgz{.bak,}
 	fi
 	popd >/dev/null 2>&1

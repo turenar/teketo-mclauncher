@@ -1,0 +1,16 @@
+#!/bin/bash
+sandbox=$1
+mcroot="${HOME}/.minecraft"
+
+if [ -z "${sandbox}" ]; then
+	echo "No input" >&2
+	exit 1
+fi
+
+mkdir -p "${sandbox}/.minecraft" || exit 1
+cd "${sandbox}/.minecraft"
+mkdir bin
+ln -sv "${mcroot}/bin/natives" bin/natives
+ln -sv "${mcroot}/launcher.jar" "${mcroot}/screenshots" .
+
+exit 0
