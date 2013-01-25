@@ -7,9 +7,12 @@ function print_help(){
 ${scrname}: teketo mclauncher
 
 usage:
-${scrname} -h			: print this help
+${scrname} -h			: print this Help
+${scrname} -D			: print Debug information
+${scrname} -V			: print Version
+${scrname} -u			: Upgrade this launcher
 ${scrname} -c [<name> [<type>]]
-				: create sandbox with <type>
+				: Create sandbox with <type>
 ${scrname} -j <name> <command> [<arg..>]
 				: exec command with setting HOME to sandbox
 ${scrname} <name>		: start minecraft with specified sandbox
