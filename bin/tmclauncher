@@ -1,21 +1,29 @@
 #!/bin/bash
-TMC_VERSION='0-20130124'
+TMC_VERSION='0-20130125'
 
+function fgcolor(){
+	case ${TERM} in
+		*color)	echo -ne "\033[01;${1}m${2}\033[00m";;
+		*)	echo -n "${2}";;
+	esac
+}
 function print_help(){
 	local scrname=$(basename $0)
 	cat <<EOD
-${scrname}: teketo mclauncher
+$(fgcolor 34 "${scrname}"): teketo mclauncher
 
-usage:
-${scrname} -h			: print this Help
-${scrname} -D			: print Debug information
-${scrname} -V			: print Version
-${scrname} -u			: Upgrade this launcher
-${scrname} -c [<name> [<type>]]
-				: Create sandbox with <type>
-${scrname} -j <name> <command> [<arg..>]
-				: exec command with setting HOME to sandbox
-${scrname} <name>		: start minecraft with specified sandbox
+$(fgcolor 35 'usage:')	$(fgcolor 34 "${scrname}") $(fgcolor 32 '<operation>')
+
+$(fgcolor 35 'operaion:')
+  $(fgcolor 36 '-h'), $(fgcolor 36 '--help')		: print this help
+  $(fgcolor 36 '-D'), $(fgcolor 36 '--debug')		: print debug information
+  $(fgcolor 36 '-V'), $(fgcolor 36 '--version')		: print version
+  $(fgcolor 36 '-u'), $(fgcolor 36 '--upgrade')		: upgrade this launcher (but no effect on this file)
+  $(fgcolor 36 '-c'), $(fgcolor 36 '--create') $(fgcolor 30 '[')$(fgcolor 32 '<name>') $(fgcolor 30 '[')$(fgcolor 32 '<type>')$(fgcolor 30 ']]')
+			: create sandbox with $(fgcolor 32 '<type>')
+  -$(fgcolor 36 'j'), $(fgcolor 36 '--run') $(fgcolor 32 '<name>') $(fgcolor 32 '<command>') $(fgcolor 30 '[')$(fgcolor 32 '<arg')$(fgcolor 30 '..')$(fgcolor 32 '>')$(fgcolor 30 ']')
+			: exec command with setting HOME to sandbox
+  $(fgcolor 32 '<name>')		: start minecraft with specified sandbox
 EOD
 }
 
