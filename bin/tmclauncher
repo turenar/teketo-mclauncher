@@ -3,25 +3,28 @@ TMC_VERSION='0-20130125'
 
 function fgcolor(){
 	case ${TERM} in
-		*color)	echo -ne "\033[01;${1}m${2}\033[00m";;
+		*color)	echo -ne "\033[${1}m${2}\033[00m";;
 		*)	echo -n "${2}";;
 	esac
+}
+function boldcolor(){
+	fgcolor "01;$1" "$2"
 }
 function print_help(){
 	local scrname=$(basename $0)
 	cat <<EOD
 $(fgcolor 34 "${scrname}"): teketo mclauncher
 
-$(fgcolor 35 'usage:')	$(fgcolor 34 "${scrname}") $(fgcolor 32 '<operation>')
+$(boldcolor 35 'usage:')	$(fgcolor 34 "${scrname}") $(fgcolor 32 '<operation>')
 
-$(fgcolor 35 'operaion:')
-  $(fgcolor 36 '-h'), $(fgcolor 36 '--help')		: print this help
-  $(fgcolor 36 '-D'), $(fgcolor 36 '--debug')		: print debug information
-  $(fgcolor 36 '-V'), $(fgcolor 36 '--version')		: print version
-  $(fgcolor 36 '-u'), $(fgcolor 36 '--upgrade')		: upgrade this launcher (but no effect on this file)
-  $(fgcolor 36 '-c'), $(fgcolor 36 '--create') $(fgcolor 30 '[')$(fgcolor 32 '<name>') $(fgcolor 30 '[')$(fgcolor 32 '<type>')$(fgcolor 30 ']]')
+$(boldcolor 35 'operaion:')
+  $(boldcolor 36 '-h'), $(boldcolor 36 '--help')		: print this help
+  $(boldcolor 36 '-D'), $(boldcolor 36 '--debug')		: print debug information
+  $(boldcolor 36 '-V'), $(boldcolor 36 '--version')		: print version
+  $(boldcolor 36 '-u'), $(boldcolor 36 '--upgrade')		: upgrade this launcher (but no effect on this file)
+  $(boldcolor 36 '-c'), $(boldcolor 36 '--create') $(boldcolor 30 '[')$(fgcolor 32 '<name>') $(boldcolor 30 '[')$(fgcolor 32 '<type>')$(boldcolor 30 ']]')
 			: create sandbox with $(fgcolor 32 '<type>')
-  -$(fgcolor 36 'j'), $(fgcolor 36 '--run') $(fgcolor 32 '<name>') $(fgcolor 32 '<command>') $(fgcolor 30 '[')$(fgcolor 32 '<arg')$(fgcolor 30 '..')$(fgcolor 32 '>')$(fgcolor 30 ']')
+  $(boldcolor 36 '-j'), $(boldcolor 36 '--run') $(fgcolor 32 '<name>') $(fgcolor 32 '<command>') $(boldcolor 30 '[')$(fgcolor 32 '<arg')$(boldcolor 30 '..')$(fgcolor 32 '>')$(boldcolor 30 ']')
 			: exec command with setting HOME to sandbox
   $(fgcolor 32 '<name>')		: start minecraft with specified sandbox
 EOD
