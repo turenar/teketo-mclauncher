@@ -140,7 +140,7 @@ function backup_data(){
 	fi
 	echo 'Backing up...'
 	pushd "${sandbox}/.." >/dev/null 2>&1
-	find -P ${sandbox_name} | run_hook_with_pipe_chain backup \
+	find -P ${sandbox_name}/.minecraft | run_hook_with_pipe_chain backup \
 		| tar --dereference --no-recursion --files-from=- -zvcf "${file_name}" ${sandbox_name}
 	popd >/dev/null 2>&1
 	return 0
