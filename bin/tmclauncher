@@ -1,5 +1,5 @@
 #!/bin/bash
-TMC_VERSION='0-20130125'
+TMC_VERSION='0-20130129'
 
 function fgcolor(){
 	case ${TERM} in
@@ -191,6 +191,7 @@ function debug_print(){
 		fi
 	fi
 	echo "tmc_hack_ibus=	${tmc_hack_ibus:-<unset>}"
+	echo "?version=	${TMC_VERSION}"
 	echo "?ibus hack=	${_tmc_ibus_used}"
 }
 
