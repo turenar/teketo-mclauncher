@@ -31,11 +31,11 @@ EOD
 }
 
 function run_hook_with_pipe_chain(){
-	hookdir="${tmc_root}/hooks"
-	if [ ! -e "${tmc_root}/helper" ]; then
-		echo "${tmc_root}/helper is not found. You may run '$0 -u'"
+	hookdir="${tmc_datadir}/hooks"
+	if [ ! -e "${tmc_bindir}/tmclauncher-helper" ]; then
+		echo "${tmc_bindir}/tmclauncher-helper is not found. You may run '$0 -u'"
 	fi
-	"${tmc_root}/helper" $1 "${hookdir}"/*
+	"${tmc_bindir}/tmclauncher-helper" $1 "${hookdir}"/*
 }
 
 function run_with_sandbox(){
@@ -91,25 +91,25 @@ function create_sandbox(){
 		exit 1
 	fi
 
-	archdir="${tmc_root}/architect"
+	archdir="${tmc_datadir}/architect"
 	if test ! -d "${archdir}"; then
 		mkdir "${archdir}"
 		if which wget >/dev/null 2>&1; then
 			echo "getting https://github.com/turenar/teketo-mclauncher/raw/master/architects.tgz..."
-			wget -O "${tmc_root}/architects.tgz" https://github.com/turenar/teketo-mclauncher/raw/master/architects.tgz || echo 'failed wget'
+			wget -O "${tmc_datadir}/architects.tgz" https://github.com/turenar/teketo-mclauncher/raw/master/architects.tgz || echo 'failed wget'
 		else
 			echo 'command "wget" is not found' >&2
 			exit 2
 		fi
-		pushd ${tmc_root} >/dev/null 2>&1
+		pushd ${tmc_datadir} >/dev/null 2>&1
 		tar -zxf architects.tgz || ( echo 'failed tar -zxf'; exit 3 )
 		popd >/dev/null 2>&1
 	fi
 
-	pushd "${tmc_root}/architect" >/dev/null 2>&1
+	pushd "${tmc_datadir}/architect" >/dev/null 2>&1
 	select arch in *; do
 		popd >/dev/null 2>&1
-		"${tmc_root}/architect/${arch}" "${sandbox}" "${tmc_root}"
+		"${tmc_datadir}/architect/${arch}" "${sandbox}" "${tmc_root}"
 		errorcode=$?
 		break
 	done
@@ -184,19 +184,45 @@ function launch_minecraft(){
 function debug_print(){
 	echo "HOME=		${HOME}"
 	echo "tmc_root=	${tmc_root}"
-	echo "archdir=	${tmc_root}/architect"
-	if test ! \( -v tmc_hack_ibus -a -z "${tmc_hack_ibus}" \); then
-		if ps -C ibus-daemon >/dev/null; then
-			_tmc_ibus_used=1
+	echo "tmc_datadir=	${tmc_datadir}"
+	echo "archdir=	${tmc_datadir}/architect"
+	echo "hookdir=	${tmc_datadir}/hooks"
+	echo "tmc_bindir=	${tmc_bindir}"
+	if test -v tmc_hack_ibus; then
+		tmc_hack_ibus='<unset>'
+	else
+		if [ ! -z "${tmc_hack_ibus}" ]; then
+			if ps -C ibus-daemon >/dev/null; then
+				_tmc_ibus_used=yes
+			fi
 		fi
 	fi
-	echo "tmc_hack_ibus=	${tmc_hack_ibus:-<unset>}"
+	echo "tmc_hack_ibus=	${tmc_hack_ibus}"
 	echo "?version=	${TMC_VERSION}"
-	echo "?ibus hack=	${_tmc_ibus_used}"
+	echo "?ibus hack=	${_tmc_ibus_used:-no}"
 }
 
 function upgrade_tmclauncher(){
 	pushd "${tmc_root}" >/dev/null 2>&1
+	if which git >/dev/null 2>&1; then
+		upgrade_tmclauncher_with_git
+	else
+		upgrade_tmclauncher_without_git
+	fi
+	popd >/dev/null 2>&1
+}
+
+function upgrade_tmclauncher_with_git(){
+	if [ -d 'src' ]; then
+		cd src
+		git pull
+		cd ..
+	else
+		mkdir src
+		git clone https://github.com/turenar/teketo-mclauncher src
+	fi
+}
+function upgrade_tmclauncher_without_git(){
 	mv tmclauncher{,.bak}
 	mv architects.tgz{,.bak}
 	mv helper{,.bak}
@@ -230,7 +256,6 @@ function upgrade_tmclauncher(){
 		echo '! reverting architects.tgz'
 		mv architects.tgz{.bak,}
 	fi
-	popd >/dev/null 2>&1
 }
 
 
@@ -241,10 +266,22 @@ fi
 if [ "$1" = '--no-fork' ]; then
 	shift
 else
-	if [ -e "${tmc_root}/tmclauncher" ]; then
-		${tmc_root}/tmclauncher --no-fork $@
+	if [ -e "${tmc_root}/src/bin/tmclauncher" ]; then
+		export tmc_datadir="${tmc_root}/src"
+		export tmc_bindir="${tmc_datadir}/bin"
+		${tmc_bindir}/tmclauncher --no-fork $@
+		exit $?
+	elif [ -e "${tmc_root}/tmclauncher" ]; then
+		export tmc_datadir="${tmc_root}"
+		export tmc_bindir="${tmc_datadir}"
+		${tmc_bindir}/tmclauncher --no-fork $@
 		exit $?
 	fi
+fi
+
+if [ -z "${tmc_datadir}" ]; then
+	export tmc_datadir="$(readlink -f $(dirname $0)/..)"
+	export tmc_bindir="${tmc_datadir}/bin"
 fi
 
 if test ! -e "${tmc_root}"; then
