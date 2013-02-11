@@ -148,8 +148,8 @@ function backup_data(){
 
 function launch_minecraft(){
 	local _tmc_ibus_used sandbox_name sandbox old_home errorcode
-	# if tmc_hack_ibus='', skip
-	if test ! \( -v tmc_hack_ibus -a -z "${tmc_hack_ibus}" \); then
+	# if tmc_hack_ibus='no', skip
+	if test ! \( -v tmc_hack_ibus -a "${tmc_hack_ibus}" = 'no' \); then
 		if ps -C ibus-daemon >/dev/null; then
 			_tmc_ibus_used=1
 		fi
@@ -184,20 +184,19 @@ function launch_minecraft(){
 function debug_print(){
 	echo "HOME=		${HOME}"
 	echo "tmc_root=	${tmc_root}"
-	echo "tmc_datadir=	${tmc_datadir}"
-	echo "archdir=	${tmc_datadir}/architect"
-	echo "hookdir=	${tmc_datadir}/hooks"
-	echo "tmc_bindir=	${tmc_bindir}"
-	if test -v tmc_hack_ibus; then
+	if [ ! -v tmc_hack_ibus ]; then
 		tmc_hack_ibus='<unset>'
-	else
-		if [ ! -z "${tmc_hack_ibus}" ]; then
-			if ps -C ibus-daemon >/dev/null; then
-				_tmc_ibus_used=yes
-			fi
+	fi
+	if [ "${tmc_hack_ibus}" '!=' 'no' ]; then
+		if ps -C ibus-daemon >/dev/null; then
+			_tmc_ibus_used=yes
 		fi
 	fi
 	echo "tmc_hack_ibus=	${tmc_hack_ibus}"
+	echo "*tmc_datadir=	${tmc_datadir}"
+	echo "*archdir=	${tmc_datadir}/architect"
+	echo "*hookdir=	${tmc_datadir}/hooks"
+	echo "*tmc_bindir=	${tmc_bindir}"
 	echo "?version=	${TMC_VERSION}"
 	echo "?ibus hack=	${_tmc_ibus_used:-no}"
 }
