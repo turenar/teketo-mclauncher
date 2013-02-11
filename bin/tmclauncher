@@ -1,5 +1,5 @@
 #!/bin/bash
-TMC_VERSION='0-20130129'
+TMC_VERSION='0-20130210'
 
 function fgcolor(){
 	case ${TERM} in
@@ -225,13 +225,13 @@ function upgrade_tmclauncher_with_git(){
 function upgrade_tmclauncher_without_git(){
 	mv tmclauncher{,.bak}
 	mv architects.tgz{,.bak}
-	mv helper{,.bak}
+	mv tmclauncher-helper{,.bak}
 	echo "getting files..."
 	tmc_baseurl=https://raw.github.com/turenar/teketo-mclauncher/master
 	wget -nv \
 		${tmc_baseurl}/bin/tmclauncher \
 		${tmc_baseurl}/architects.tgz \
-		${tmc_baseurl}/helper
+		${tmc_baseurl}/bin/tmclauncher-helper
 	echo 'installing files...'
 	if [ -e 'tmclauncher' ]; then
 		echo '> chmod +x tmclauncher'
@@ -242,12 +242,12 @@ function upgrade_tmclauncher_without_git(){
 		echo '! reverting tmclauncher'
 		mv tmclauncher{.bak,}
 	fi
-	if [ -e 'helper' ]; then
-		echo '> chmod +x helper'
-		chmod +x helper
+	if [ -e 'tmclauncher-helper' ]; then
+		echo '> chmod +x tmclauncher-helper'
+		chmod +x tmclauncher-helper
 	else
-		echo '! reverting helper'
-		mv helper{.bak,}
+		echo '! reverting tmclauncher-helper'
+		mv tmclauncher-helper{.bak,}
 	fi
 	if [ -e 'architects.tgz' ]; then
 		echo '> tar -zxf architects.tgz'
@@ -279,9 +279,15 @@ else
 	fi
 fi
 
+# called with '--no-fork' directly
 if [ -z "${tmc_datadir}" ]; then
 	export tmc_datadir="$(readlink -f $(dirname $0)/..)"
 	export tmc_bindir="${tmc_datadir}/bin"
+fi
+
+# more friendly version
+if [ -d "${tmc_datadir}/.git" ]; then
+	TMC_VERSION=$(git describe)
 fi
 
 if test ! -e "${tmc_root}"; then
