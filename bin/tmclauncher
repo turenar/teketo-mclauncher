@@ -58,7 +58,8 @@ function run_with_sandbox(){
 		echo "Specify command" >&2
 		exit 1
 	elif [[ "$1" = */java ]]; then
-		"$1" -Duser.home="${HOME}" $@
+		command="$1"; shift
+		"${command}" -Duser.home="${HOME}" $@
 		errorcode=$?
 	else
 		$@
