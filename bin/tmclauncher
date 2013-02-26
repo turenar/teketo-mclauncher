@@ -143,6 +143,7 @@ function backup_data(){
 	find -P "${sandbox_name}/.minecraft" | run_hook_with_pipe_chain backup \
 		| tar --dereference --no-recursion --files-from=- -zvcf "${file_name}" "${sandbox_name}"
 	popd >/dev/null 2>&1
+	echo 'done!'
 	return 0
 }
 
@@ -221,7 +222,9 @@ function upgrade_tmclauncher_with_git(){
 		git clone https://github.com/turenar/teketo-mclauncher src
 	fi
 }
+
 function upgrade_tmclauncher_without_git(){
+	echo 'Old-fashioned upgrade (without git) is deprecated.'
 	mv tmclauncher{,.bak}
 	mv architects.tgz{,.bak}
 	mv tmclauncher-helper{,.bak}
@@ -266,11 +269,13 @@ if [ "$1" = '--no-fork' ]; then
 	shift
 else
 	if [ -e "${tmc_root}/src/bin/tmclauncher" ]; then
+		# new srcdir
 		export tmc_datadir="${tmc_root}/src"
 		export tmc_bindir="${tmc_datadir}/bin"
 		"${tmc_bindir}/tmclauncher" --no-fork $@
 		exit $?
 	elif [ -e "${tmc_root}/tmclauncher" ]; then
+		# old srcdir
 		export tmc_datadir="${tmc_root}"
 		export tmc_bindir="${tmc_datadir}"
 		"${tmc_bindir}/tmclauncher" --no-fork $@
@@ -296,6 +301,7 @@ if test ! -d "${tmc_root}"; then
 	echo "$(basename "$0"): WARN: ${tmc_root} is not exist or not directory" >&2
 fi
 tmc_root="$(readlink -f ${tmc_root})"
+test -e "${tmc_root}/config" && source "${tmc_root}/config"
 
 case "$1" in
 	'-?'|-h|--help)	print_help;;
