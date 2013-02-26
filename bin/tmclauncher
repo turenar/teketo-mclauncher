@@ -101,7 +101,7 @@ function create_sandbox(){
 			echo 'command "wget" is not found' >&2
 			exit 2
 		fi
-		pushd ${tmc_datadir} >/dev/null 2>&1
+		pushd "${tmc_datadir}" >/dev/null 2>&1
 		tar -zxf architects.tgz || ( echo 'failed tar -zxf'; exit 3 )
 		popd >/dev/null 2>&1
 	fi
@@ -140,8 +140,8 @@ function backup_data(){
 	fi
 	echo 'Backing up...'
 	pushd "${sandbox}/.." >/dev/null 2>&1
-	find -P ${sandbox_name}/.minecraft | run_hook_with_pipe_chain backup \
-		| tar --dereference --no-recursion --files-from=- -zvcf "${file_name}" ${sandbox_name}
+	find -P "${sandbox_name}/.minecraft" | run_hook_with_pipe_chain backup \
+		| tar --dereference --no-recursion --files-from=- -zvcf "${file_name}" "${sandbox_name}"
 	popd >/dev/null 2>&1
 	return 0
 }
@@ -268,19 +268,19 @@ else
 	if [ -e "${tmc_root}/src/bin/tmclauncher" ]; then
 		export tmc_datadir="${tmc_root}/src"
 		export tmc_bindir="${tmc_datadir}/bin"
-		${tmc_bindir}/tmclauncher --no-fork $@
+		"${tmc_bindir}/tmclauncher" --no-fork $@
 		exit $?
 	elif [ -e "${tmc_root}/tmclauncher" ]; then
 		export tmc_datadir="${tmc_root}"
 		export tmc_bindir="${tmc_datadir}"
-		${tmc_bindir}/tmclauncher --no-fork $@
+		"${tmc_bindir}/tmclauncher" --no-fork $@
 		exit $?
 	fi
 fi
 
 # called with '--no-fork' directly
 if [ -z "${tmc_datadir}" ]; then
-	export tmc_datadir="$(readlink -f $(dirname $0)/..)"
+	export tmc_datadir="$(readlink -f $(dirname "$0")/..)"
 	export tmc_bindir="${tmc_datadir}/bin"
 fi
 
@@ -293,19 +293,19 @@ if test ! -e "${tmc_root}"; then
 	mkdir -p "${tmc_root}"
 fi
 if test ! -d "${tmc_root}"; then
-	echo "$(basename $0): WARN: ${tmc_root} is not exist or not directory"
+	echo "$(basename "$0"): WARN: ${tmc_root} is not exist or not directory" >&2
 fi
 tmc_root="$(readlink -f ${tmc_root})"
 
 case "$1" in
 	'-?'|-h|--help)	print_help;;
-	-V|--version) echo "${TMC_VERSION}";;
-	-c|--create)	create_sandbox $2 $3;;
+	-V|--version)	echo "${TMC_VERSION}";;
+	-c|--create)	create_sandbox "$2" "$3";;
 	-D|--debug)	debug_print;;
 	-j|--run)	shift; run_with_sandbox $@;;
 	-u|--upgrade)	upgrade_tmclauncher;;
 	-*)		echo "unknown operation: $1">&2; print_help>&2; exit 1;;
-	*)		launch_minecraft $1;;
+	*)		launch_minecraft "$1";;
 esac
 
 
