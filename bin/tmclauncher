@@ -182,6 +182,17 @@ function launch_minecraft(){
 	exit ${errorcode}
 }
 
+function list_sandbox(){
+	sandbox_dir="${tmc_root}/sandbox"
+	if [ -d "${sandbox_dir}" ]; then
+		pushd "${sandbox_dir}" >/dev/null 2>&1
+		ls
+		popd >/dev/null 2>&1
+	else
+		echo 'No sandbox is found!' >&2
+	fi
+}
+
 function debug_print(){
 	echo "HOME=		${HOME}"
 	echo "tmc_root=	${tmc_root}"
@@ -310,6 +321,7 @@ case "$1" in
 	-D|--debug)	debug_print;;
 	-j|--run)	shift; run_with_sandbox $@;;
 	-u|--upgrade)	upgrade_tmclauncher;;
+	-l|--list-sandbox) list_sandbox;;
 	-*)		echo "unknown operation: $1">&2; print_help>&2; exit 1;;
 	*)		launch_minecraft "$1";;
 esac
