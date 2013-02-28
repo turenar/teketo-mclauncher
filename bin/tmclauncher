@@ -302,7 +302,9 @@ fi
 
 # more friendly version
 if [ -d "${tmc_datadir}/.git" ]; then
+	pushd "${tmc_datadir}" >/dev/null 2>&1
 	TMC_VERSION=$(git describe)
+	popd >/dev/null 2>&1
 fi
 
 if test ! -e "${tmc_root}"; then
