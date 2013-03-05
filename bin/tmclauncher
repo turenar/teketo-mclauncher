@@ -171,14 +171,15 @@ function launch_minecraft(){
 
 	old_home="${HOME}"
 
-	test "${_tmc_ibus_used}" -eq 1 && killall ibus-daemon
+	# test "${_tmc_ibus_used}" -eq 1 && killall ibus-daemon
+	export XMODIFIERS=' padsp'
 
 	HOME="${sandbox}"
 	java -Duser.home="${HOME}" -Xmx1024m -Xms512m -jar "${sandbox}/.minecraft/launcher.jar"
 	errorcode=$?
 	HOME="${old_home}"
 
-	test "${_tmc_ibus_used}" -eq 1 && ibus-daemon --xim -r -d
+	# test "${_tmc_ibus_used}" -eq 1 && ibus-daemon --xim -r -d
 	exit ${errorcode}
 }
 
