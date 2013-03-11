@@ -148,7 +148,7 @@ function backup_data(){
 }
 
 function launch_minecraft(){
-	local _tmc_ibus_used sandbox_name sandbox old_home errorcode
+	local _tmc_ibus_used sandbox_name sandbox old_home launcher_jar errorcode
 	# if tmc_hack_ibus='no', skip
 	if test ! \( -v tmc_hack_ibus -a "${tmc_hack_ibus}" = 'no' \); then
 		if ps -C ibus-daemon >/dev/null; then
@@ -169,13 +169,18 @@ function launch_minecraft(){
 
 	backup_data "${sandbox}" "${sandbox_name}"
 
-	old_home="${HOME}"
+	launcher_jar="${tmc_root}/cache/minecraft-launcher.jar"
+	if test ! -e "${launcher_jar}"; then
+		test -d "${tmc_root}/cache" || mkdir "${tmc_root}/cache"
+		wget https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft.jar -O "${launcher_jar}" || echo "Failed retrieve minecraft-launcher.jar" >&2
+	fi
 
+	old_home="${HOME}"
 	# test "${_tmc_ibus_used}" -eq 1 && killall ibus-daemon
 	export XMODIFIERS=' padsp'
 
 	HOME="${sandbox}"
-	java -Duser.home="${HOME}" -Xmx1024m -Xms512m -jar "${sandbox}/.minecraft/launcher.jar"
+	java -Duser.home="${HOME}" -Xmx1024m -Xms512m -jar "${launcher_jar}"
 	errorcode=$?
 	HOME="${old_home}"
 
