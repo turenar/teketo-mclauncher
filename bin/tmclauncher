@@ -180,7 +180,7 @@ function launch_minecraft(){
 	export XMODIFIERS=' padsp'
 
 	HOME="${sandbox}"
-	java -Duser.home="${HOME}" -Xmx1024m -Xms512m -jar "${launcher_jar}"
+	java -Duser.home="${HOME}" -Xmx1024m -Xms512m ${tmc_java_opt} -jar "${launcher_jar}"
 	errorcode=$?
 	HOME="${old_home}"
 
